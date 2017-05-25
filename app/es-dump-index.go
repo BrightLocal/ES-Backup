@@ -49,6 +49,10 @@ func main() {
 	flag.IntVar(&pageSize, "page", 5000, "Scroll page size")
 	flag.StringVar(&query, "query", "", "Query")
 	flag.Parse()
+	if hosts == "" {
+		flag.Usage()
+		os.Exit(1)
+	}
 	if index == "" {
 		flag.Usage()
 		os.Exit(1)
