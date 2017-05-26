@@ -1,14 +1,21 @@
 package main
 
 import (
-	"bufio"
-	"compress/gzip"
+	"encoding/json"
 	"flag"
+	"io"
 	"log"
 	"os"
 	"path/filepath"
-	"io"
+
+	gzip "github.com/klauspost/pgzip"
 )
+
+type Item struct {
+	ID     string           `json:"id"`
+	Type   string           `json:"type"`
+	Source *json.RawMessage `json:"source"`
+}
 
 func main() {
 	var (
@@ -49,16 +56,22 @@ func main() {
 		if err != nil {
 			log.Fatalf("Error creating uncompressor: %s", err)
 		}
-		r := bufio.NewReader(gz)
+		decoder := json.NewDecoder(gz)
+		i := 0
 		for {
-			line, err := r.ReadBytes(byte('\n'))
-			if err == io.EOF {
-				break
-			} else if err != nil {
-				log.Fatalf("Error reading from file: %s", err)
+			var line Item
+			if err := decoder.Decode(&line); err != nil {
+				if err == io.EOF {
+					break
+				} else if err != nil {
+					log.Printf("Error reading from file %q: %s", fileName, err)
+					break
+				}
 			}
+			i++
 			// TODO
-			log.Printf("Line: %s", line)
+			log.Printf("Line id: %s", line.ID)
 		}
+		log.Printf("Lines in %q: %d", fileName, i)
 	}
 }

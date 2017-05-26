@@ -13,7 +13,7 @@
 package main
 
 import (
-	"compress/gzip"
+	"bytes"
 	"context"
 	"encoding/json"
 	"flag"
@@ -24,7 +24,12 @@ import (
 	"strings"
 	"time"
 
+	gzip "github.com/klauspost/pgzip"
 	"gopkg.in/olivere/elastic.v5"
+)
+
+const (
+	ext = "json.gz"
 )
 
 type Item struct {
@@ -61,7 +66,6 @@ func main() {
 		flag.Usage()
 		os.Exit(1)
 	}
-	log.SetFlags(log.LstdFlags | log.Lshortfile)
 	args := []elastic.ClientOptionFunc{elastic.SetMaxRetries(10)}
 	for _, h := range strings.Split(hosts, ",") {
 		args = append(args, elastic.SetURL(h))
@@ -70,21 +74,21 @@ func main() {
 	if err != nil {
 		log.Fatalf("Error connecting to ElasticSearch at %q: %s", hosts, err)
 	}
-	fileName := fmt.Sprintf("%s.gz", out)
+	fileName := fmt.Sprintf("%s."+ext, out)
 	if split > 0 {
-		fileName = fmt.Sprintf("%s.%08d.gz", out, 0)
+		fileName = fmt.Sprintf("%s.%08d."+ext, out, 0)
 	}
 	file, err := os.Create(fileName)
 	if err != nil {
 		log.Fatalf("Error creating file: %s", err)
 	}
-	compressor, _ := gzip.NewWriterLevel(file, gzip.BestCompression)
-	encoder := json.NewEncoder(compressor)
 	var (
 		total   int64
 		page    int64
 		curPage int64
+		buf     bytes.Buffer
 	)
+	encoder := json.NewEncoder(&buf)
 	scroller := esClient.Scroll(index)
 	scroller.Scroll("1m").Size(pageSize)
 	if query != "" {
@@ -111,32 +115,49 @@ func main() {
 				log.Fatalf("Error marshalling: %s", err)
 			}
 			curPage++
-			if split > 0 && split == curPage {
+			if split == curPage {
 				page++
 				curPage = 0
-				if err := compressor.Close(); err != nil {
-					log.Printf("Error closing compressor file: %s", err)
+				gz, err := gzip.NewWriterLevel(file, gzip.BestCompression)
+				if err != nil {
+					log.Fatalf("Error creating compressor: %s", err)
+				}
+				if _, err := buf.WriteTo(gz); err != nil {
+					log.Fatalf("Error writing to compressor: %s", err)
+				}
+				if err := gz.Close(); err != nil {
+					log.Fatalf("Error closing compressor: %s", err)
 				}
 				if err := file.Close(); err != nil {
-					log.Printf("Error closing file: %s", err)
+					log.Fatalf("Error closing file: %s", err)
 				}
-				file, err = os.Create(fmt.Sprintf("%s.%08d.gz", out, page))
+				file, err = os.Create(fmt.Sprintf("%s.%08d."+ext, out, page))
 				if err != nil {
 					log.Fatalf("Error creating file: %s", err)
 				}
-				compressor, _ := gzip.NewWriterLevel(file, gzip.BestCompression)
-				encoder = json.NewEncoder(compressor)
+				buf.Reset()
 			}
 		}
 		tf := float64(total)
 		log.Printf(
-			"Written out %d (%.4f%%) records (%.4f sec per 1k records)",
+			"Processed %d (%.4f%%) records (%.0f records per second)",
 			total,
 			tf*100/float64(results.TotalHits()),
-			time.Now().Sub(start).Seconds()/tf*1000,
+			tf/time.Now().Sub(start).Seconds(),
 		)
 	}
-	compressor.Close()
-	file.Close()
+	gz, err := gzip.NewWriterLevel(file, gzip.BestCompression)
+	if err != nil {
+		log.Fatalf("Error creating compressor: %s", err)
+	}
+	if _, err := buf.WriteTo(gz); err != nil {
+		log.Fatalf("Error writing to compressor: %s", err)
+	}
+	if err := gz.Close(); err != nil {
+		log.Fatalf("Error closing compressor: %s", err)
+	}
+	if err := file.Close(); err != nil {
+		log.Fatalf("Error closing file: %s", err)
+	}
 	log.Printf("Dumped %d records in %s", total, time.Now().Sub(start).String())
 }
