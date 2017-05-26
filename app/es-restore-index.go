@@ -86,7 +86,7 @@ func main() {
 			i++
 			total++
 			bs.Add(elastic.NewBulkUpdateRequest().Index(index).Type(line.Type).Id(line.ID).DocAsUpsert(true).Doc(line.Source))
-			if bs.EstimatedSizeInBytes() > 5*1024*1024*1024 {
+			if bs.EstimatedSizeInBytes() > 10*1024*1024 {
 				if resp, err := bs.Do(context.TODO()); err != nil {
 					log.Fatalf("Error during bulk upsert: %s", err)
 				} else if resp.Errors {
@@ -95,6 +95,7 @@ func main() {
 					}
 					log.Fatal()
 				}
+				log.Printf("Records inserted: %d", total)
 			}
 		}
 		if resp, err := bs.Do(context.TODO()); err != nil {
