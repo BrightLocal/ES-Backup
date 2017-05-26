@@ -11,15 +11,10 @@ import (
 	"strings"
 	"time"
 
+	"github.com/BrightLocal/ES-Backup/app/item"
 	gzip "github.com/klauspost/pgzip"
 	"gopkg.in/olivere/elastic.v5"
 )
-
-type Item struct {
-	ID     string           `json:"id"`
-	Type   string           `json:"type"`
-	Source *json.RawMessage `json:"source"`
-}
 
 func main() {
 	var (
@@ -74,7 +69,7 @@ func main() {
 		i := 0
 		bs := elastic.NewBulkService(esClient)
 		for {
-			var line Item
+			var line item.Record
 			if err := decoder.Decode(&line); err != nil {
 				if err == io.EOF {
 					break

@@ -24,6 +24,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/BrightLocal/ES-Backup/app/item"
 	gzip "github.com/klauspost/pgzip"
 	"gopkg.in/olivere/elastic.v5"
 )
@@ -31,12 +32,6 @@ import (
 const (
 	ext = "json.gz"
 )
-
-type Item struct {
-	ID     string           `json:"id"`
-	Type   string           `json:"type"`
-	Source *json.RawMessage `json:"source"`
-}
 
 func main() {
 	var (
@@ -106,11 +101,11 @@ func main() {
 			}
 		}
 		total += int64(len(results.Hits.Hits))
-		for _, item := range results.Hits.Hits {
-			if err := encoder.Encode(Item{
-				ID:     item.Id,
-				Type:   item.Type,
-				Source: item.Source,
+		for _, row := range results.Hits.Hits {
+			if err := encoder.Encode(item.Record{
+				ID:     row.Id,
+				Type:   row.Type,
+				Source: row.Source,
 			}); err != nil {
 				log.Fatalf("Error marshalling: %s", err)
 			}
