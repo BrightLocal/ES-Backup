@@ -22,9 +22,9 @@ Note, that records are kept in memory before they are written to file in compres
 
 Will produce files like:
 ```
-lpf-2017.00000000.json.gz
-lpf-2017.00000001.json.gz
-lpf-2017.00000002.json.gz
+my-index-2017.00000000.json.gz
+my-index-2017.00000001.json.gz
+my-index-2017.00000002.json.gz
 ...
 ```
 
@@ -33,6 +33,6 @@ lpf-2017.00000002.json.gz
 Example usage arguments:
 ```
 -hosts=http://host07:9200,http://host06:9200                          # ES hosts to connect to
--index=lpf                                                            # index to restore
+-index=my-index                                                       # index to restore
 -files=index.*.json.gz                                                # glob file mask
 ```
