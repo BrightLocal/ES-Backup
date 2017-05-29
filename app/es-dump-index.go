@@ -1,3 +1,7 @@
+// Copyright 2017 BrightLocal Ltd. All rights reserved.
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
+
 // ElasticSearch index dumper
 // Example usage arguments:
 //  -hosts=http://host07:9200,http://host06:9200                          # ES hosts to connect to
@@ -6,10 +10,11 @@
 //  -split=100000                                                         # how many records per file (omit for single file)
 //  -query="{\"range\":{\"dateCrawled\":{\"gte\":\"2017-01-01 0:0:0\"}}}" # ES query to use for partial dumps
 // Will produce files like:
-//  lpf-2017.00000000.gz
-//  lpf-2017.00000001.gz
-//  lpf-2017.00000002.gz
+//  lpf-2017.00000000.json.gz
+//  lpf-2017.00000001.json.gz
+//  lpf-2017.00000002.json.gz
 //  etc
+
 package main
 
 import (
