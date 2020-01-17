@@ -38,6 +38,8 @@ const (
 	ext = "json.gz"
 )
 
+var appVersion = "<none>"
+
 func main() {
 	var (
 		hosts    string
@@ -53,7 +55,14 @@ func main() {
 	flag.Int64Var(&split, "split", 0, "How many records per file")
 	flag.IntVar(&pageSize, "page", 5000, "Scroll page size")
 	flag.StringVar(&query, "query", "", "Query")
+
+	getVersion := flag.Bool("version", false, "Get version")
 	flag.Parse()
+	if *getVersion {
+		fmt.Println(appVersion)
+		return
+	}
+
 	if hosts == "" {
 		flag.Usage()
 		os.Exit(1)

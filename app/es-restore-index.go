@@ -8,6 +8,7 @@ import (
 	"context"
 	"encoding/json"
 	"flag"
+	"fmt"
 	"io"
 	"log"
 	"os"
@@ -20,6 +21,8 @@ import (
 	"gopkg.in/olivere/elastic.v5"
 )
 
+var appVersion = "<none>"
+
 func main() {
 	var (
 		hosts string
@@ -29,7 +32,14 @@ func main() {
 	flag.StringVar(&hosts, "hosts", "", "List of ElasticSearch hosts")
 	flag.StringVar(&index, "index", "", "Index to restore")
 	flag.StringVar(&files, "files", "", "Files to use")
+
+	getVersion := flag.Bool("version", false, "Get version")
 	flag.Parse()
+	if *getVersion {
+		fmt.Println(appVersion)
+		return
+	}
+
 	if hosts == "" {
 		flag.Usage()
 		os.Exit(1)
