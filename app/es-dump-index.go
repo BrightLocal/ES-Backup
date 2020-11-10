@@ -31,7 +31,7 @@ import (
 
 	"github.com/BrightLocal/ES-Backup/app/item"
 	gzip "github.com/klauspost/pgzip"
-	"gopkg.in/olivere/elastic.v5"
+	"github.com/olivere/elastic/v7"
 )
 
 const (
@@ -119,7 +119,7 @@ func main() {
 			if err := encoder.Encode(item.Record{
 				ID:     row.Id,
 				Type:   row.Type,
-				Source: row.Source,
+				Source: &row.Source,
 			}); err != nil {
 				log.Fatalf("Error marshalling: %s", err)
 			}
