@@ -60,7 +60,7 @@ func main() {
 		log.Fatalf("No files found")
 	}
 	log.Printf("Importing from %d file(s)", len(list))
-	args := []elastic.ClientOptionFunc{elastic.SetRetrier(elastic.NewBackoffRetrier(elastic.NewConstantBackoff(5 * time.Second)))}
+	args := []elastic.ClientOptionFunc{elastic.SetMaxRetries(10)}
 	for _, h := range strings.Split(hosts, ",") {
 		args = append(args, elastic.SetURL(h))
 	}

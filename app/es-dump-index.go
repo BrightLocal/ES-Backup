@@ -75,7 +75,7 @@ func main() {
 		flag.Usage()
 		os.Exit(1)
 	}
-	args := []elastic.ClientOptionFunc{elastic.SetRetrier(elastic.NewBackoffRetrier(elastic.NewConstantBackoff(5 * time.Second)))}
+	args := []elastic.ClientOptionFunc{elastic.SetMaxRetries(10)}
 	for _, h := range strings.Split(hosts, ",") {
 		args = append(args, elastic.SetURL(h))
 	}
