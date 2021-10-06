@@ -62,7 +62,7 @@ func main() {
 	log.Printf("Importing from %d file(s)", len(list))
 	args := []elastic.ClientOptionFunc{elastic.SetMaxRetries(10)}
 	for _, h := range strings.Split(hosts, ",") {
-		args = append(args, elastic.SetURL(h))
+		args = append(args, elastic.SetURL(h), elastic.SetSniff(false))
 	}
 	esClient, err := elastic.NewClient(args...)
 	if err != nil {
