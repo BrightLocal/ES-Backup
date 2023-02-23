@@ -16,9 +16,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/BrightLocal/ES-Backup/app/item"
 	gzip "github.com/klauspost/pgzip"
 	"github.com/olivere/elastic/v7"
+
+	"github.com/BrightLocal/ES-Backup/app/item"
 )
 
 var appVersion = "<none>"
@@ -94,7 +95,7 @@ func main() {
 			}
 			i++
 			total++
-			bs.Add(elastic.NewBulkUpdateRequest().Index(index).Type(line.Type).Id(line.ID).DocAsUpsert(true).Doc(line.Source))
+			bs.Add(elastic.NewBulkUpdateRequest().Index(index).Id(line.ID).DocAsUpsert(true).Doc(line.Source))
 			if bs.EstimatedSizeInBytes() > 10*1024*1024 {
 				if resp, err := bs.Do(context.TODO()); err != nil {
 					log.Fatalf("Error during bulk upsert: %s", err)
